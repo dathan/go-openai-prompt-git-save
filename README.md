@@ -15,4 +15,4 @@ Build a template repository to get to coding as quickly as possible, by starting
 * Production Builds with git tag
 
 ## Installing via brew
-* `brew install --verbose --build-from-source brew/Formula/go-project-template.rb`
+* `brew install --verbose --build-from-source brew/Formula/go-openai-prompt-git-save.rb`
