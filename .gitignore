@@ -22,3 +22,6 @@ vendor
 # Ignore api dir
 api
 bin
+
+# Ignore env files
+.env
