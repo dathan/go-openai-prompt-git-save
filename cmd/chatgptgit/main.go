@@ -55,7 +55,7 @@ func chatCommand(client *openai.Client, content string) (resp openai.ChatComplet
 	return client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
+			Model: openai.GPT4,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
@@ -66,7 +66,16 @@ func chatCommand(client *openai.Client, content string) (resp openai.ChatComplet
 	)
 
 }
+
+func validateEnvironment() {
+	if os.Getenv("OPENAI_API_KEY") == "" || os.Getenv("GITHUB_TOKEN") == "" {
+		panic("Invalid environment OPENAI_API_KEY and GITHUB_TOKEN environment variables need to be defined")
+	}
+}
+
 func main() {
+
+	validateEnvironment()
 
 	err := chatCmd.Execute()
 	if err != nil {
