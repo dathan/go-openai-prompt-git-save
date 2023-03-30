@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 
@@ -17,9 +19,7 @@ import (
 var repoName string = "openai-prompts-save"
 var fileName string = "prompts.md"
 
-func SaveInput(content string) error {
-
-	fmt.Printf("Saving input to GitHub: %s\n", content)
+func SaveInput(content string, response string) error {
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -32,18 +32,22 @@ func SaveInput(content string) error {
 		return err
 	}
 	repo, _, err := client.Repositories.Get(ctx, owner.GetLogin(), repoName)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "404 Not Found") {
 		return err
 	}
 
 	if repo == nil {
-		fmt.Println("Creating repo")
 		repo, _, err = client.Repositories.Create(ctx, "", &github.Repository{
 			Name: github.String(repoName),
 		})
 		if err != nil {
 			return err
 		}
+		err = initRepo(repo)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	// clone the repo
@@ -52,19 +56,56 @@ func SaveInput(content string) error {
 		return err
 	}
 	defer os.RemoveAll(tmpDir)
-
 	r, err := git.PlainClone(tmpDir, false, &git.CloneOptions{
 		URL: repo.GetCloneURL(),
 	})
+
 	if err != nil {
 		return err
 	}
 
+	return addCommitPush(tmpDir, repo, fileName, content, response, r)
+
+}
+
+func initRepo(repo *github.Repository) error {
+
+	// Initialize a local repository in a temporary directory
+	localRepoPath, _ := os.MkdirTemp("", repoName)
+	_, _ = git.PlainInit(localRepoPath, false)
+
+	// Create a README.md file
+	readmePath := localRepoPath + "/README.md"
+	_ = os.WriteFile(readmePath, []byte("#Init"), 0644)
+
+	// Open the local repository
+	r, _ := git.PlainOpen(localRepoPath)
+
+	// Stage the changes
+	return addCommitPush(localRepoPath, repo, "README.md", "Inital Commit", "", r)
+}
+
+func addCommitPush(tmpDir string, repo *github.Repository, fileName string, content string, body string, r *git.Repository) error {
 	// Create or update the file
 	filePath := fmt.Sprintf("%s/%s", tmpDir, fileName)
-	err = os.WriteFile(filePath, []byte(content), 0644)
+
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString("### " + content + "\n")
+	if err != nil {
+		return err
+	}
+
+	arrOfStrings := strings.Split(body, "\n")
+	for _, str := range arrOfStrings {
+		_, err = file.WriteString("> " + str + "\n")
+		if err != nil {
+			return err
+		}
 	}
 
 	// Add the changes to the index
@@ -78,7 +119,7 @@ func SaveInput(content string) error {
 	}
 
 	// Commit the changes
-	commit, err := w.Commit(content, &git.CommitOptions{
+	_, err = w.Commit(content, &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "bot",
 			Email: "dathanvp+gptgitsave@gmail.com",
@@ -90,16 +131,27 @@ func SaveInput(content string) error {
 		return err
 	}
 
-	fmt.Printf("Commit %s created\n", commit.String())
+	// Set the remote URL
+	_, err = r.CreateRemote(&config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{*repo.CloneURL},
+	})
+	if err != nil && !strings.Contains(err.Error(), "already exists") {
+		return err
+	}
+
 	err = r.Push(&git.PushOptions{
 		RemoteName: "origin",
-		Auth: &http.TokenAuth{
-			Token: string(os.Getenv("GITHUB_TOKEN")),
+		Auth: &http.BasicAuth{
+			Username: "dathan",
+			Password: string(os.Getenv("GITHUB_TOKEN")),
 		},
 	})
 
 	if err != nil {
 		return err
 	}
+
 	return nil
+
 }

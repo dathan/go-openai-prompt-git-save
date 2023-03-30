@@ -14,11 +14,11 @@ import (
 
 var chatCmd = &cobra.Command{
 	Use:   "chat",
-	Short: "Chat with OpenAI GPT-3",
+	Short: "Chat with OpenAI GPT-4",
 	Run: func(cmd *cobra.Command, args []string) {
 		// inialize the client
 		client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
-		fmt.Println("Welcome to the OpenAI GPT-3 chatbot. Type 'exit' to quit.")
+		fmt.Println("Welcome to the OpenAI GPT-4 chatbot. Type '/exit' to quit.")
 		for {
 			fmt.Print("> ")
 			reader := bufio.NewReader(os.Stdin)
@@ -40,9 +40,9 @@ var chatCmd = &cobra.Command{
 			}
 
 			fmt.Printf("Response from GPT-4\n %s\n", resp.Choices[0].Message.Content)
-			err = githubstorage.SaveInput(input)
+			err = githubstorage.SaveInput(input, resp.Choices[0].Message.Content)
 			if err != nil {
-				fmt.Println("Error saving input to GitHub")
+				fmt.Println("Error saving input to GitHub: ", err)
 				os.Exit(1)
 			}
 		}
