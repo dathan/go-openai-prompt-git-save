@@ -143,7 +143,7 @@ func addCommitPush(tmpDir string, repo *github.Repository, fileName string, cont
 	err = r.Push(&git.PushOptions{
 		RemoteName: "origin",
 		Auth: &http.BasicAuth{
-			Username: os.Getenv("GITHUB_USER"), // yes, this can be anything except an empty string
+			Username: string(os.Getenv("GITHUB_USER")), // yes, this can be anything except an empty string
 			Password: string(os.Getenv("GITHUB_TOKEN")),
 		},
 	})
