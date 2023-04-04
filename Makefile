@@ -40,7 +40,6 @@ build-linux:
 .PHONY: docker-build
 docker-build:
 				docker build  \
-					--build-arg GITHUB_SSH_PRIV_KEY="`cat ~/.ssh/id_rsa`" \
 					-t $(or ${dockerImage},$(BINARY_NAME)-release) .
 .PHONY: docker-tag
 docker-tag:
