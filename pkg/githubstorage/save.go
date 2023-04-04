@@ -51,7 +51,7 @@ func SaveInput(content string, response string) error {
 	}
 
 	// clone the repo
-	tmpDir, err := os.MkdirTemp("", "openai-prompts-save")
+	tmpDir, err := os.MkdirTemp("/tmp", "openai-prompts-save")
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func addCommitPush(tmpDir string, repo *github.Repository, fileName string, cont
 	err = r.Push(&git.PushOptions{
 		RemoteName: "origin",
 		Auth: &http.BasicAuth{
-			Username: "dathan",
+			Username: os.Getenv("GITHUB_USER"), // yes, this can be anything except an empty string
 			Password: string(os.Getenv("GITHUB_TOKEN")),
 		},
 	})
