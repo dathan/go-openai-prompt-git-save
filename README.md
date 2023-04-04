@@ -1,6 +1,13 @@
 ## Purpose
 
-Build a template repository to get to coding as quickly as possible, by starting from a common template which follows the guidelines [`here`](https://github.com/golang-standards/project-layout)
+[https://dathan.github.io/blog/posts/chat-gpt-4-save-prompts-to-git/](https://dathan.github.io/blog/posts/chat-gpt-4-save-prompts-to-git/)
+
+## Requirements 
+
+* OPENAI_API_KEY
+* GITHUB_TOKEN
+
+Environment variables must be defined otherwise the command line application will panic
 
 ## Features
 * Makefile to build consistently in a local environment and remote environment
