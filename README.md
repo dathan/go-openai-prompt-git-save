@@ -6,6 +6,7 @@
 
 * OPENAI_API_KEY
 * GITHUB_TOKEN
+* GITHUB_USER
 
 Environment variables must be defined otherwise the command line application will panic
 
