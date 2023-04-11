@@ -22,9 +22,10 @@ func NewCommand(input string) *Command {
 func (c *Command) HandleSlashCommand() {
 
 	switch c.command {
-	case "/exit":
+	case "/quit", "/exit":
 		fmt.Println("Thanks for Chatting")
 		os.Exit(0)
+
 	}
 
 }
