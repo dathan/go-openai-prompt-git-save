@@ -40,10 +40,25 @@ var chatCmd = &cobra.Command{
 			}
 
 			fmt.Printf("Response from GPT-4\n %s\n", resp.Choices[0].Message.Content)
-			err = githubstorage.SaveInput(input, resp.Choices[0].Message.Content)
-			if err != nil {
-				fmt.Println("Error saving input to GitHub: ", err)
-				os.Exit(1)
+
+			// if the go routine exists let's exit the parent
+			done := make(chan error)
+			go func() {
+				err = githubstorage.SaveInput(input, resp.Choices[0].Message.Content)
+				if err != nil {
+					fmt.Println("Error saving input to GitHub: ", err)
+					done <- err
+				}
+			}()
+
+			select {
+			case err := <-done:
+				if err != nil {
+					fmt.Println("Error:", err)
+					os.Exit(1)
+				}
+			default:
+				// no error
 			}
 		}
 
