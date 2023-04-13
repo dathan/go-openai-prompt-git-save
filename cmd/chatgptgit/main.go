@@ -47,8 +47,8 @@ var chatCmd = &cobra.Command{
 				err = githubstorage.SaveInput(input, resp.Choices[0].Message.Content)
 				if err != nil {
 					fmt.Println("Error saving input to GitHub: ", err)
-					done <- err
 				}
+				done <- err
 			}()
 
 			select {
@@ -57,8 +57,6 @@ var chatCmd = &cobra.Command{
 					fmt.Println("Error:", err)
 					os.Exit(1)
 				}
-			default:
-				// no error
 			}
 		}
 
