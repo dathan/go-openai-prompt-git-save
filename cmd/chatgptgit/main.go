@@ -29,7 +29,9 @@ var chatCmd = &cobra.Command{
 
 			c := NewCommand(input)
 
-			c.HandleSlashCommand()
+			if c.HandleSlashCommand() {
+				continue
+			}
 
 			resp, err := c.HandleChatCommand(client)
 			if err != nil {
